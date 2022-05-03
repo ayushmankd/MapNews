@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Build and Deploy
 
 # Controls when the workflow will run
 on:
@@ -17,21 +17,78 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
+    # Name of the Job
+    name: Build and Test
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # Name of the Step
+      - name: Checkout
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-#       - name: Build the Angular App
-#         run: ng build
+      - name: Use Node 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      
+      - name: Cache Node Modules
+        id: cache-nodemodules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # caching node_modules
+          path: node_modules # 👈 path for node_modules folder
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          # 👆 name of the chache key includes package-lock.json
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      
+      - name: Install dependencies
+        if:
+          steps.cache-nodemodules.outputs.cache-hit != 'true'
+          # 👆 if cache hits the skip this step.
+        run: npm ci
 
-      # Runs a set of commands using the runners shell
-      - name: Install Dependencies and Build Angular App
-        run: |
-          npm install @angular/cli
-          npm install
-          ng build
+      - name: Build
+        run: npm run build:ci -- --prod
+
+      - name: Lint
+        run: npm run lint
+      
+      - name: Test
+        run: npm run test:ci -- --prod
+      
+      - name: Archive build
+        if: success()
+        uses: actions/upload-artifact@v1
+        with:
+          name: deploy_dist
+          path: dist
+      - name: Archive code coverage result
+        if: success()
+        uses: actions/upload-artifact@v1
+        with:
+          name: deploy_coverage
+          path: coverage
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Download build
+        uses: actions/download-artifact@v1
+        with:
+          name: deploy_dist
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: deploy_dist/angular-demo
