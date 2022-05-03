@@ -58,7 +58,7 @@ jobs:
 
       - name: Build
         run: |
-          npm run build:ci -- --prod
+          npm run build -- --prod
 
       - name: Lint
         run: |
@@ -66,7 +66,7 @@ jobs:
       
       - name: Test
         run: |
-          npm run test:ci -- --prod
+          npm run test -- --prod
       
       - name: Archive build
         if: success()
