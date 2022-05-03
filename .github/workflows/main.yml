@@ -58,7 +58,7 @@ jobs:
 
       - name: Build
         run: |
-          npm run build -- -- --base-href=https://ayushmankd.github.io/MapNews/ --prod
+          npm run build -- --base-href=https://ayushmankd.github.io/MapNews/ --prod
 
       # - name: Lint
       #   run: |
