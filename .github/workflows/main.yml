@@ -32,5 +32,6 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install Dependencies and Build Angular App
         run: |
+          npm install @angular/cli
           npm install
           ng build
