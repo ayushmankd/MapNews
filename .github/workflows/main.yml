@@ -53,16 +53,20 @@ jobs:
         if:
           steps.cache-nodemodules.outputs.cache-hit != 'true'
           # 👆 if cache hits the skip this step.
-        run: npm ci
+        run: |
+          npm ci
 
       - name: Build
-        run: npm run build:ci -- --prod
+        run: |
+          npm run build:ci -- --prod
 
       - name: Lint
-        run: npm run lint
+        run: |
+          npm run lint
       
       - name: Test
-        run: npm run test:ci -- --prod
+        run: |
+          npm run test:ci -- --prod
       
       - name: Archive build
         if: success()
